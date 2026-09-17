@@ -34,9 +34,9 @@ When a first-time renter receives a 30-page lease, they are at an immediate info
 
 ## Demo
 
-![demo](./demo.gif)
+![demo](./demo.png)
 
-*(Placeholder for UI demonstration GIF / interactive walk-through screenshot)*
+*LeaseClarity web interface: In-memory lease evaluation displaying detected red-flag clauses, high-contrast severity tags, verbatim contract quotations, and tenant recommendations.*
 
 ---
 
