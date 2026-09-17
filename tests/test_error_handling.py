@@ -1,0 +1,84 @@
+"""
+Unit tests for error handling, retries, exponential backoff, and exception masking.
+"""
+
+from unittest.mock import AsyncMock, MagicMock, patch
+import httpx
+import pytest
+from fastapi import HTTPException
+from google.genai.errors import APIError
+
+from app.services.llm_service import LLMService
+
+
+class TestLLMErrorHandlingAndRetries:
+    """Test 3-attempt exponential backoff retry and graceful error masking."""
+
+    @pytest.mark.asyncio
+    async def test_successful_after_transient_failure(self):
+        """Simulate failure on attempt 1, success on attempt 2."""
+        service = LLMService()
+        service.api_key = "test-key"
+
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.text = '{"result": "success"}'
+
+        # Side effect: first call raises APIError, second succeeds
+        call_count = 0
+        dummy_http_resp = httpx.Response(503, request=httpx.Request("POST", "https://example.com"))
+
+        def side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise APIError(code=503, response=dummy_http_resp)
+            return mock_response
+
+        with patch.object(service, "_get_client", return_value=mock_client):
+            mock_client.models.generate_content.side_effect = side_effect
+
+            with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                result = await service.generate("Test prompt")
+                assert result == '{"result": "success"}'
+                assert call_count == 2
+                assert mock_sleep.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_fails_after_three_attempts_masks_error(self):
+        """Confirm exactly 3 attempts made, then raises friendly 503 without raw trace."""
+        service = LLMService()
+        service.api_key = "test-key"
+
+        dummy_http_resp = httpx.Response(
+            429,
+            content=b"RESOURCE_EXHAUSTED: Rate limit exceeded for default project 123456789",
+            request=httpx.Request("POST", "https://example.com"),
+        )
+        mock_client = MagicMock()
+        mock_client.models.generate_content.side_effect = APIError(
+            code=429,
+            response=dummy_http_resp,
+        )
+
+        with patch.object(service, "_get_client", return_value=mock_client):
+            with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                with pytest.raises(HTTPException) as exc_info:
+                    await service.generate("Prompt")
+
+                # Verify 3 attempts took place (2 sleep delays before final attempt)
+                assert mock_client.models.generate_content.call_count == 3
+                assert mock_sleep.call_count == 2
+                assert exc_info.value.status_code == 503
+                # Verify raw sensitive API error (e.g. project number) is masked
+                assert "123456789" not in exc_info.value.detail
+                assert "temporarily busy" in exc_info.value.detail.lower()
+
+    @pytest.mark.asyncio
+    async def test_missing_api_key_raises_clear_error(self):
+        service = LLMService()
+        service.api_key = ""
+        with pytest.raises(HTTPException) as exc_info:
+            await service.generate("Prompt")
+        assert exc_info.value.status_code == 500
+        assert "GEMINI_API_KEY" in exc_info.value.detail
