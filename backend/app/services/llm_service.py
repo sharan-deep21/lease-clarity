@@ -6,6 +6,7 @@ Implements exponential backoff retries (max 3 attempts) and user-friendly error 
 import asyncio
 import logging
 import random
+import re
 from typing import Optional
 from fastapi import HTTPException, status
 from google import genai
@@ -99,23 +100,37 @@ class LLMService:
             except APIError as api_err:
                 last_exception = api_err
                 err_code = getattr(api_err, "code", "unknown")
+                err_str = str(api_err)
                 logger.warning(
                     f"Gemini API attempt {attempt}/{max_attempts} failed with APIError (code {err_code}): {api_err}"
                 )
                 if attempt < max_attempts:
-                    # Exponential backoff with jitter
-                    sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(0.1, 0.5)
+                    # Parse server-recommended retry delay if available
+                    match = re.search(r"retry in (\d+(?:\.\d+)?)s", err_str)
+                    if match:
+                        sleep_time = min(float(match.group(1)) + 1.0, 30.0)
+                    elif err_code == 429 or "RESOURCE_EXHAUSTED" in err_str:
+                        sleep_time = min(4.0 * (2 ** (attempt - 1)), 25.0) + random.uniform(0.5, 1.5)
+                    else:
+                        sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(0.1, 0.5)
+                    logger.info(f"Retrying LLM call in {sleep_time:.2f}s...")
                     await asyncio.sleep(sleep_time)
                 else:
                     break
 
             except Exception as exc:
                 last_exception = exc
+                err_str = str(exc)
                 logger.warning(
                     f"LLM call attempt {attempt}/{max_attempts} encountered unexpected error: {type(exc).__name__}"
                 )
                 if attempt < max_attempts:
-                    sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(0.1, 0.4)
+                    match = re.search(r"retry in (\d+(?:\.\d+)?)s", err_str)
+                    if match:
+                        sleep_time = min(float(match.group(1)) + 1.0, 30.0)
+                    else:
+                        sleep_time = (base_delay * (2 ** (attempt - 1))) + random.uniform(0.1, 0.4)
+                    logger.info(f"Retrying LLM call in {sleep_time:.2f}s...")
                     await asyncio.sleep(sleep_time)
                 else:
                     break

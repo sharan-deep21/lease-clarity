@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     # Gemini LLM settings
     gemini_api_key: str = Field(default="", description="Gemini API Key from Google AI Studio")
-    gemini_model: str = Field(default="gemini-2.5-flash", description="Gemini model identifier")
+    gemini_model: str = Field(default="gemini-3.1-flash-lite", description="Gemini model identifier")
 
     # CORS settings
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     )
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
