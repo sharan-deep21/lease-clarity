@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import "./ai-chat-input.css";
 

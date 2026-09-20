@@ -60,6 +60,9 @@ dist-ssr/
 Thumbs.db
 desktop.ini
 
+# Temporary scratch directory
+scratch/
+
 # Prevent accidental large test uploads (>500KB)
 *.zip
 *.tar.gz

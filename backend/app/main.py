@@ -5,6 +5,7 @@ FastAPI application factory and middleware configuration.
 import logging
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
@@ -43,6 +44,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # GZip response compression for payloads > 1000 bytes
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # Global friendly exception handling (prevent exposing internal stack traces)
     @app.exception_handler(HTTPException)

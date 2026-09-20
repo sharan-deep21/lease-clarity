@@ -102,11 +102,18 @@ Open `http://localhost:5173` in your browser.
 
 ## Verification & Testing
 
-Run the full automated test suite (31/31 passed):
-```bash
-cd backend
-python -m pytest -o pythonpath=. ..\tests
-```
+### Automated Test Suite
+- **Backend Suite (Pytest & Pytest-Cov)**: 31 unit & integration tests passing with **82% statement coverage**.
+  ```bash
+  cd backend
+  pytest -o pythonpath=. --cov=app --cov-report=term-missing ..\tests
+  ```
+- **Frontend Suite (Vitest & React Testing Library)**: 9 component & unit tests passing.
+  ```bash
+  cd frontend
+  npm test
+  ```
+- **Continuous Integration**: Automated GitHub Actions workflow (`.github/workflows/test.yml`) verifies both test suites on every push and pull request.
 
 ---
 

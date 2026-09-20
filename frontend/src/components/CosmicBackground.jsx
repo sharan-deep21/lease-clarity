@@ -621,6 +621,11 @@ export function CosmicBackground({
         spinSpeed = 0.12;
       }
 
+      const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReducedMotion) {
+        spinSpeed *= 0.05;
+      }
+
       stateRef.current.currentProgress += (desiredProgress - stateRef.current.currentProgress) * 0.06;
       const p = stateRef.current.currentProgress;
 

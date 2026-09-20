@@ -214,15 +214,20 @@ export function LeaseInputBar({
 
         {/* Text Area */}
         <textarea
+          id="lease-prompt-textarea"
           ref={textareaRef}
           className="claude-prompt-textarea"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholderText}
+          aria-describedby="upload-instructions-hint"
           disabled={isProcessing}
           rows={3}
         />
+        <span id="upload-instructions-hint" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', border: 0 }}>
+          Attach a PDF or TXT rental agreement up to 5MB, paste lease text, or ask a question.
+        </span>
 
         {/* Bottom Actions Bar */}
         <div className="claude-prompt-actions">

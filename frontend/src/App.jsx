@@ -171,6 +171,7 @@ export default function App() {
 
   return (
     <div className="app-shell" data-theme="dark">
+      <a href="#main-content" className="skip-to-content">Skip to main content</a>
       {/* Kinesis Cosmic 3D Particle Background with Dynamic Thinking States */}
       <Suspense fallback={null}>
         <CosmicBackground

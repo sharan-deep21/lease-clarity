@@ -2445,4 +2445,49 @@ body[data-theme="light"],
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
+/* =====================================================================
+   Accessibility Enhancements (Skip Link, Touch Targets & Reduced Motion)
+   ===================================================================== */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 9999;
+  padding: 12px 20px;
+  background: var(--brand-accent);
+  color: var(--brand-accent-text);
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  box-shadow: var(--shadow-floating);
+  transition: top 0.2s ease;
+}
+
+.skip-to-content:focus {
+  top: 16px;
+}
+
+/* Touch targets (44x44px min for interactive elements) */
+.btn-remove-attachment,
+.btn-replay-thought,
+.alert-dismiss-btn,
+.claude-send-btn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Respect OS prefers-reduced-motion settings */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
 

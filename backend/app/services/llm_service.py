@@ -4,6 +4,7 @@ Implements exponential backoff retries (max 3 attempts) and user-friendly error 
 """
 
 import asyncio
+import hashlib
 import logging
 import random
 import re
@@ -17,6 +18,10 @@ from app.config import get_settings
 
 
 logger = logging.getLogger(__name__)
+
+# Simple in-memory cache for expensive LLM calls
+_LLM_CACHE = {}
+_MAX_CACHE_SIZE = 100
 
 
 class LLMService:
@@ -47,7 +52,7 @@ class LLMService:
         temperature: float = 0.1,
     ) -> str:
         """
-        Execute an LLM generation call with 3-attempt exponential backoff retry.
+        Execute an LLM generation call with 3-attempt exponential backoff retry and caching.
 
         Args:
             prompt: User/task prompt.
@@ -61,6 +66,15 @@ class LLMService:
         Raises:
             HTTPException: With a friendly message if retries are exhausted.
         """
+        # Check in-memory cache
+        cache_key = hashlib.sha256(
+            f"{prompt}:{system_instruction}:{json_mode}:{temperature}".encode("utf-8")
+        ).hexdigest()
+
+        if cache_key in _LLM_CACHE:
+            logger.info(f"Returning cached LLM response for key {cache_key[:8]}")
+            return _LLM_CACHE[cache_key]
+
         client = self._get_client()
 
         # Build configuration
@@ -91,7 +105,13 @@ class LLMService:
                 if not response or not response.text:
                     raise ValueError("Empty response received from language model.")
 
-                return response.text.strip()
+                result_text = response.text.strip()
+                if len(_LLM_CACHE) >= _MAX_CACHE_SIZE:
+                    first_key = next(iter(_LLM_CACHE))
+                    _LLM_CACHE.pop(first_key, None)
+                _LLM_CACHE[cache_key] = result_text
+
+                return result_text
 
             except HTTPException:
                 # Re-raise explicit HTTP exceptions immediately
