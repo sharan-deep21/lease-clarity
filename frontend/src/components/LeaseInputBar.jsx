@@ -43,7 +43,7 @@ Tenant expressly waives all rights of action, claims, and statutory remedies aga
 SECTION 9: RULES AND PETS
 No pets are permitted under any circumstances without prior written consent. Quiet hours are enforced between 10:00 PM and 8:00 AM.`;
 
-export function ClaudeInputBar({
+export function LeaseInputBar({
   onFileUpload,
   onTextSubmit,
   onQuestionSubmit,

@@ -10,7 +10,7 @@ const ALL_ANALYSIS_STEPS = [
   'Cross-referencing and grounding verbatim quotations & citations'
 ];
 
-export function ClaudeThinkingPanel({
+export function ThinkingProgressPanel({
   isLoading,
   currentStage = 0,
   filename = 'rental agreement',

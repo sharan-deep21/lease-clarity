@@ -10,8 +10,8 @@ import {
 import { Navbar } from './components/Navbar';
 import { LegalBanner } from './components/LegalDisclaimer';
 import { InteractiveLogo3D } from './components/InteractiveLogo3D';
-import { ClaudeInputBar, SAMPLE_LEASE_TEXT } from './components/ClaudeInputBar';
-import { ClaudeThinkingPanel } from './components/ClaudeThinkingPanel';
+import { LeaseInputBar, SAMPLE_LEASE_TEXT } from './components/LeaseInputBar';
+import { ThinkingProgressPanel } from './components/ThinkingProgressPanel';
 import { SummaryView } from './components/SummaryView';
 import { RiskFlagsView } from './components/RiskFlagsView';
 import { AccessibleAlert } from './components/AccessibleAlert';
@@ -198,7 +198,7 @@ export default function App() {
         {/* Hero Experience: 3D Interactive Logo + Claude-Style File Bar (ALWAYS MOUNTED) */}
         <div className={`hero-experience ${docState || isLoading ? 'has-results' : ''}`}>
           <InteractiveLogo3D isCompact={!!docState || isLoading} />
-          <ClaudeInputBar
+          <LeaseInputBar
             onFileUpload={handleFileUpload}
             onTextSubmit={handleTextSubmit}
             onQuestionSubmit={handleDirectQuestion}
@@ -208,10 +208,10 @@ export default function App() {
           />
         </div>
 
-          {/* Claude Live Thinking & Process Panel (Appears smoothly below the file bar) */}
+          {/* Live Thinking & Process Panel (Appears smoothly below the file bar) */}
           {(isLoading || docState) && (
             <div ref={thinkingRef} className="thinking-panel-wrapper">
-              <ClaudeThinkingPanel
+              <ThinkingProgressPanel
                 isLoading={isLoading}
                 currentStage={loadingStage}
                 filename={docState?.filename || 'rental agreement'}
