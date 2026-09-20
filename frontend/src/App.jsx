@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import {
   FileText,
   AlertTriangle,
@@ -14,9 +14,17 @@ import { ClaudeInputBar, SAMPLE_LEASE_TEXT } from './components/ClaudeInputBar';
 import { ClaudeThinkingPanel } from './components/ClaudeThinkingPanel';
 import { SummaryView } from './components/SummaryView';
 import { RiskFlagsView } from './components/RiskFlagsView';
-import { GroundedQAView } from './components/GroundedQAView';
-import { LawyerChecklistView } from './components/LawyerChecklistView';
-import { ComparisonView } from './components/ComparisonView';
+
+// Dynamically split secondary views for bundle optimization
+const GroundedQAView = React.lazy(() =>
+  import('./components/GroundedQAView').then((m) => ({ default: m.GroundedQAView }))
+);
+const LawyerChecklistView = React.lazy(() =>
+  import('./components/LawyerChecklistView').then((m) => ({ default: m.LawyerChecklistView }))
+);
+const ComparisonView = React.lazy(() =>
+  import('./components/ComparisonView').then((m) => ({ default: m.ComparisonView }))
+);
 import { AccessibleAlert } from './components/AccessibleAlert';
 import { CosmicBackground } from './components/CosmicBackground';
 import {
@@ -301,45 +309,47 @@ export default function App() {
 
               {/* Tab View Panels */}
               <div className="tab-view-content">
-                {activeTab === 'summary' && analysisState && (
-                  <div id="panel-sum" role="tabpanel" aria-labelledby="tab-sum">
-                    <SummaryView summary={analysisState.summary} />
-                  </div>
-                )}
+                <Suspense fallback={<div className="p-8 text-center text-muted">Loading analysis view...</div>}>
+                  {activeTab === 'summary' && analysisState && (
+                    <div id="panel-sum" role="tabpanel" aria-labelledby="tab-sum">
+                      <SummaryView summary={analysisState.summary} />
+                    </div>
+                  )}
 
-                {activeTab === 'risks' && analysisState && (
-                  <div id="panel-risk" role="tabpanel" aria-labelledby="tab-risk">
-                    <RiskFlagsView riskData={analysisState.risk_analysis} />
-                  </div>
-                )}
+                  {activeTab === 'risks' && analysisState && (
+                    <div id="panel-risk" role="tabpanel" aria-labelledby="tab-risk">
+                      <RiskFlagsView riskData={analysisState.risk_analysis} />
+                    </div>
+                  )}
 
-                {activeTab === 'qa' && (
-                  <div id="panel-qa" role="tabpanel" aria-labelledby="tab-qa">
-                    <GroundedQAView
-                      documentText={docState.extracted_text}
-                      initialQuestion={initialQuestion}
-                    />
-                  </div>
-                )}
+                  {activeTab === 'qa' && (
+                    <div id="panel-qa" role="tabpanel" aria-labelledby="tab-qa">
+                      <GroundedQAView
+                        documentText={docState.extracted_text}
+                        initialQuestion={initialQuestion}
+                      />
+                    </div>
+                  )}
 
-                {activeTab === 'lawyer' && (
-                  <div id="panel-lawyer" role="tabpanel" aria-labelledby="tab-lawyer">
-                    <LawyerChecklistView
-                      checklistData={checklistState}
-                      onGenerateChecklist={handleGenerateChecklist}
-                      isLoading={isChecklistLoading}
-                    />
-                  </div>
-                )}
+                  {activeTab === 'lawyer' && (
+                    <div id="panel-lawyer" role="tabpanel" aria-labelledby="tab-lawyer">
+                      <LawyerChecklistView
+                        checklistData={checklistState}
+                        onGenerateChecklist={handleGenerateChecklist}
+                        isLoading={isChecklistLoading}
+                      />
+                    </div>
+                  )}
 
-                {activeTab === 'compare' && (
-                  <div id="panel-compare" role="tabpanel" aria-labelledby="tab-compare">
-                    <ComparisonView
-                      originalText={docState.extracted_text}
-                      originalFilename={docState.filename}
-                    />
-                  </div>
-                )}
+                  {activeTab === 'compare' && (
+                    <div id="panel-compare" role="tabpanel" aria-labelledby="tab-compare">
+                      <ComparisonView
+                        originalText={docState.extracted_text}
+                        originalFilename={docState.filename}
+                      />
+                    </div>
+                  )}
+                </Suspense>
               </div>
             </div>
           )}
