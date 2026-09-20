@@ -116,3 +116,35 @@ class TestLLMErrorHandlingAndRetries:
             assert mock_client.models.generate_content.call_count == 2
             assert len(_LLM_CACHE) == 2
 
+    @pytest.mark.asyncio
+    async def test_llm_cache_ttl_expiration(self):
+        """Confirm that an expired cache entry (>10 min old) is evicted and triggers a fresh API call."""
+        import time
+        from app.services.llm_service import _LLM_CACHE, _CACHE_TTL_SECONDS
+        _LLM_CACHE.clear()
+
+        service = LLMService()
+        service.api_key = "test-key"
+
+        mock_client = MagicMock()
+        mock_response_fresh = MagicMock()
+        mock_response_fresh.text = '{"summary": "Fresh response after TTL expiration"}'
+        mock_client.models.generate_content.return_value = mock_response_fresh
+
+        with patch.object(service, "_get_client", return_value=mock_client):
+            prompt = "Analyze lease:\n<document>Rent is $1500/month</document>"
+            # Populate cache
+            await service.generate(prompt=prompt)
+            assert mock_client.models.generate_content.call_count == 1
+
+            # Manually age the cached entry past TTL (e.g. 601 seconds ago)
+            for k in list(_LLM_CACHE.keys()):
+                val, _ = _LLM_CACHE[k]
+                _LLM_CACHE[k] = (val, time.time() - (_CACHE_TTL_SECONDS + 1.0))
+
+            # Call again -> Expired entry must be evicted and a fresh API call made
+            res = await service.generate(prompt=prompt)
+            assert res == '{"summary": "Fresh response after TTL expiration"}'
+            assert mock_client.models.generate_content.call_count == 2
+
+

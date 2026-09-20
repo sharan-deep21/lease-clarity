@@ -8,6 +8,7 @@ import hashlib
 import logging
 import random
 import re
+import time
 from typing import Optional
 from fastapi import HTTPException, status
 from google import genai
@@ -19,9 +20,10 @@ from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
-# Simple in-memory cache for expensive LLM calls
+# Simple in-memory cache for expensive LLM calls (10-minute TTL, max 100 items)
 _LLM_CACHE = {}
 _MAX_CACHE_SIZE = 100
+_CACHE_TTL_SECONDS = 600.0  # 10 minutes
 
 
 class LLMService:
@@ -71,9 +73,19 @@ class LLMService:
             f"{prompt}:{system_instruction}:{json_mode}:{temperature}".encode("utf-8")
         ).hexdigest()
 
+        now = time.time()
         if cache_key in _LLM_CACHE:
-            logger.info(f"Returning cached LLM response for key {cache_key[:8]}")
-            return _LLM_CACHE[cache_key]
+            cached_item = _LLM_CACHE[cache_key]
+            if isinstance(cached_item, tuple) and len(cached_item) == 2:
+                response_text, timestamp = cached_item
+                if now - timestamp < _CACHE_TTL_SECONDS:
+                    logger.info(f"Returning cached LLM response for key {cache_key[:8]}")
+                    return response_text
+                else:
+                    logger.info(f"Evicting expired LLM cache entry for key {cache_key[:8]}")
+                    _LLM_CACHE.pop(cache_key, None)
+            else:
+                _LLM_CACHE.pop(cache_key, None)
 
         client = self._get_client()
 
@@ -109,7 +121,7 @@ class LLMService:
                 if len(_LLM_CACHE) >= _MAX_CACHE_SIZE:
                     first_key = next(iter(_LLM_CACHE))
                     _LLM_CACHE.pop(first_key, None)
-                _LLM_CACHE[cache_key] = result_text
+                _LLM_CACHE[cache_key] = (result_text, time.time())
 
                 return result_text
 
