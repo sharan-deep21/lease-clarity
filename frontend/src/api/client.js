@@ -3,7 +3,7 @@
  * Provides resilient error parsing and user-friendly error formatting.
  */
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://lease-clarity.onrender.com/api';
 
 /**
  * Helper to process JSON response and handle error payloads gracefully.
