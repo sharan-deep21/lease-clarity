@@ -71,6 +71,16 @@ def create_app() -> FastAPI:
     app.include_router(qa_router)
     app.include_router(comparison_router)
 
+    # Mount static frontend build if available
+    import os
+    from fastapi.staticfiles import StaticFiles
+
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    frontend_dist = os.path.join(root_dir, "frontend", "dist")
+
+    if os.path.exists(frontend_dist):
+        app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="static")
+
     return app
 
 
