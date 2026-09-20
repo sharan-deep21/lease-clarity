@@ -25,8 +25,9 @@ const LawyerChecklistView = React.lazy(() =>
 const ComparisonView = React.lazy(() =>
   import('./components/ComparisonView').then((m) => ({ default: m.ComparisonView }))
 );
-import { AccessibleAlert } from './components/AccessibleAlert';
-import { CosmicBackground } from './components/CosmicBackground';
+const CosmicBackground = React.lazy(() =>
+  import('./components/CosmicBackground').then((m) => ({ default: m.CosmicBackground }))
+);
 import {
   uploadDocumentFile,
   submitDirectText,
@@ -170,12 +171,14 @@ export default function App() {
   return (
     <div className="app-shell" data-theme="dark">
       {/* Kinesis Cosmic 3D Particle Background with Dynamic Thinking States */}
-      <CosmicBackground
-        isLoading={isLoading}
-        loadingStage={loadingStage}
-        hasResults={!!analysisState}
-        theme="dark"
-      />
+      <Suspense fallback={null}>
+        <CosmicBackground
+          isLoading={isLoading}
+          loadingStage={loadingStage}
+          hasResults={!!analysisState}
+          theme="dark"
+        />
+      </Suspense>
 
       {/* Top Navigation */}
       <Navbar
