@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     gemini_model: str = Field(default="gemini-3.1-flash-lite", description="Gemini model identifier")
 
     # CORS settings
-    cors_origins: str = "*"
+    cors_origins: str = "https://lease-clarity-sigma.vercel.app,http://localhost:5173,http://127.0.0.1:5173"
 
     # Mandatory legal disclaimer appended to every AI output
     mandatory_legal_disclaimer: str = (
