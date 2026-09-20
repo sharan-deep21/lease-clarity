@@ -14,6 +14,7 @@ import { ClaudeInputBar, SAMPLE_LEASE_TEXT } from './components/ClaudeInputBar';
 import { ClaudeThinkingPanel } from './components/ClaudeThinkingPanel';
 import { SummaryView } from './components/SummaryView';
 import { RiskFlagsView } from './components/RiskFlagsView';
+import { AccessibleAlert } from './components/AccessibleAlert';
 
 // Dynamically split secondary views for bundle optimization
 const GroundedQAView = React.lazy(() =>
