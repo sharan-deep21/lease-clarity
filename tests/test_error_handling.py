@@ -82,3 +82,37 @@ class TestLLMErrorHandlingAndRetries:
             await service.generate("Prompt")
         assert exc_info.value.status_code == 500
         assert "GEMINI_API_KEY" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_llm_cache_key_differs_by_document_content(self):
+        """Confirm that different document texts produce distinct cache keys and avoid collisions."""
+        from app.services.llm_service import _LLM_CACHE
+        _LLM_CACHE.clear()
+
+        service = LLMService()
+        service.api_key = "test-key"
+
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.text = '{"summary": "Document analysis result"}'
+        mock_client.models.generate_content.return_value = mock_response
+
+        with patch.object(service, "_get_client", return_value=mock_client):
+            # First call with Document A
+            prompt_doc_a = "Analyze lease:\n<document>Rent is $1500/month</document>"
+            res1 = await service.generate(prompt=prompt_doc_a)
+            assert res1 == '{"summary": "Document analysis result"}'
+            assert mock_client.models.generate_content.call_count == 1
+
+            # Second call with identical Document A -> Cache Hit (no SDK call)
+            res2 = await service.generate(prompt=prompt_doc_a)
+            assert res2 == '{"summary": "Document analysis result"}'
+            assert mock_client.models.generate_content.call_count == 1
+
+            # Third call with different Document B -> Cache Miss (triggers SDK call)
+            prompt_doc_b = "Analyze lease:\n<document>Rent is $2500/month</document>"
+            res3 = await service.generate(prompt=prompt_doc_b)
+            assert res3 == '{"summary": "Document analysis result"}'
+            assert mock_client.models.generate_content.call_count == 2
+            assert len(_LLM_CACHE) == 2
+
