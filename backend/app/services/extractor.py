@@ -8,7 +8,10 @@ import re
 import logging
 from typing import Tuple
 from fastapi import HTTPException, status
-import pdfplumber
+try:
+    import pdfplumber
+except Exception:
+    pdfplumber = None
 import pypdf
 
 from app.utils.security import sanitize_extracted_text
@@ -84,16 +87,19 @@ def extract_from_pdf(content: bytes) -> str:
 
     # Attempt primary extraction with pdfplumber
     try:
-        with pdfplumber.open(io.BytesIO(content)) as pdf:
-            if not pdf.pages:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="The PDF contains no pages.",
-                )
-            for page_idx, page in enumerate(pdf.pages):
-                text = page.extract_text(layout=False) or ""
-                if text.strip():
-                    extracted_pages.append(text.strip())
+        if pdfplumber is None:
+            pdfplumber_failed = True
+        else:
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                if not pdf.pages:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="The PDF contains no pages.",
+                    )
+                for page_idx, page in enumerate(pdf.pages):
+                    text = page.extract_text(layout=False) or ""
+                    if text.strip():
+                        extracted_pages.append(text.strip())
     except HTTPException:
         raise
     except Exception as exc:
