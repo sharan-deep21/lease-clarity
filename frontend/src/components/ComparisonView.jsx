@@ -109,9 +109,9 @@ export function ComparisonView({ originalText, originalFilename }) {
           </label>
           <textarea
             id="revised-lease-input"
-            className="text-area-input"
-            rows={8}
-            placeholder="Paste the revised lease or amendment here..."
+            className="comparison-textarea"
+            rows={9}
+            placeholder="Paste the revised lease or amendment text here..."
             value={revisedText}
             onChange={(e) => setRevisedText(e.target.value)}
             disabled={isLoading}
@@ -120,11 +120,11 @@ export function ComparisonView({ originalText, originalFilename }) {
           <div className="setup-footer">
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn btn-primary btn-compare-action"
               onClick={handleCompare}
               disabled={isLoading || revisedText.trim().length < 10}
             >
-              <GitCompare size={18} aria-hidden="true" />
+              <GitCompare size={17} aria-hidden="true" />
               <span>{isLoading ? 'Comparing drafts...' : 'Run Comparative Analysis'}</span>
             </button>
           </div>

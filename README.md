@@ -1,4 +1,8 @@
-# Rental Agreement Assistant for First-Time Tenants
+<p align="center">
+  <img src="./logo-hero.png" width="160" alt="LeaseClarity Logo" />
+</p>
+
+# LeaseClarity: Rental Agreement Assistant for First-Time Tenants
 
 An AI-powered legal assistance tool engineered to empower first-time renters to inspect, understand, and navigate residential lease agreements before signing. The application translates dense legal boilerplate into plain, structured English, detects predatory or one-sided clauses with direct verbatim citations, answers tenant questions strictly grounded in the document, and generates tailored questions to take to a licensed attorney.
 

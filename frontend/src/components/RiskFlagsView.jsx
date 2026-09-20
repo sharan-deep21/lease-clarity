@@ -65,7 +65,7 @@ export function RiskFlagsView({ riskData }) {
       {/* Zero Flags State */}
       {flag_count === 0 && (
         <div className="zero-flags-card" role="status">
-          <CheckCircle2 size={32} className="text-emerald-500" aria-hidden="true" />
+          <CheckCircle2 size={32} style={{ color: 'var(--text-secondary)' }} aria-hidden="true" />
           <h4>No Tenant-Unfavorable Traps Detected</h4>
           <p>The analyzed clauses align with standard residential lease practices.</p>
         </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Send, HelpCircle, BookOpen, AlertCircle, Sparkles } from 'lucide-react';
 import { InlineDisclaimer } from './LegalDisclaimer';
 import { askLeaseQuestion } from '../api/client';
+import ThoughtLine from './ThoughtLine';
 
 const SUGGESTED_QUESTIONS = [
   'What is the late fee and grace period for rent?',
@@ -12,11 +13,31 @@ const SUGGESTED_QUESTIONS = [
   'Are pets allowed in the building?',
 ];
 
-export function GroundedQAView({ documentText }) {
+export function GroundedQAView({ documentText, initialQuestion = null }) {
   const [question, setQuestion] = useState('');
   const [qaHistory, setQaHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  React.useEffect(() => {
+    if (initialQuestion && initialQuestion.trim()) {
+      setQuestion(initialQuestion.trim());
+      const runQuery = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const response = await askLeaseQuestion(documentText, initialQuestion.trim());
+          setQaHistory((prev) => [response, ...prev]);
+          setQuestion('');
+        } catch (err) {
+          setError(err.message || 'Failed to obtain answer. Please try again.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      runQuery();
+    }
+  }, [initialQuestion, documentText]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,11 +127,26 @@ export function GroundedQAView({ documentText }) {
         </div>
       )}
 
-      {/* Loading state indicator */}
+      {/* Active ThoughtLine while searching and answering questions */}
       {isLoading && (
-        <div className="qa-thinking-card" role="status" aria-live="polite">
-          <div className="pulse-indicator" aria-hidden="true"></div>
-          <span>Analyzing lease clauses and verifying exact citations...</span>
+        <div className="qa-thought-wrapper" role="status" aria-live="polite">
+          <ThoughtLine
+            working={isLoading}
+            steps={[
+              'Parsing tenant question & identifying target clauses',
+              'Scanning lease clauses strictly for grounded citations',
+              'Synthesizing plain answer with verbatim quote references'
+            ]}
+            label="Searching lease clauses…"
+            doneLabel="Thought for"
+            glyph="sparkle"
+            fontSize={14}
+            collapsible={true}
+            collapseOnSettle={true}
+            showTimer={true}
+            color="var(--text-primary)"
+            glyphColor="#ffffff"
+          />
         </div>
       )}
 

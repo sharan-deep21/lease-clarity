@@ -1,35 +1,51 @@
 import React from 'react';
-import { Scale, RotateCcw } from 'lucide-react';
+import { RotateCcw, Sun, Moon, ArrowRight } from 'lucide-react';
 
-export function Navbar({ onResetSession, hasDocument }) {
+export function Navbar({ onResetSession, hasDocument, onTrySample }) {
   return (
-    <header className="site-header">
-      <div className="header-container">
-        <div className="brand-lockup">
-          <div className="brand-icon-wrapper" aria-hidden="true">
-            <Scale size={24} />
-          </div>
-          <div>
-            <h1 className="brand-title">LeaseClarity</h1>
-            <p className="brand-subtitle">AI Rental Agreement Assistant for First-Time Tenants</p>
-          </div>
+    <header className="navbar-wrapper">
+      <nav className="pill-navbar" aria-label="Main Navigation">
+        {/* Brand Lockup with Dual-Color Pulsing Dot */}
+        <a href="#main-content" className="nav-brand" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+          <span className="brand-dot" aria-hidden="true" />
+          <span className="brand-text">LeaseClarity</span>
+        </a>
+
+        {/* Feature Navigation Links */}
+        <div className="nav-links">
+          <a href="#main-content" className="nav-link" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Overview</a>
+          <span className="nav-tag">AI LEGAL ACCESS</span>
         </div>
 
-        <div className="header-actions">
-          <span className="vertical-pill">AI for Legal Access</span>
+        {/* Action Controls */}
+        <div className="nav-actions">
           {hasDocument && (
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
+              className="nav-cta-pill"
               onClick={onResetSession}
-              aria-label="Upload another lease agreement and clear active session"
+              aria-label="Analyze a new lease agreement"
             >
-              <RotateCcw size={16} aria-hidden="true" />
+              <RotateCcw size={13} aria-hidden="true" />
               <span>New Lease</span>
+              <ArrowRight size={12} className="cta-arrow" aria-hidden="true" />
             </button>
           )}
+
+          {/* Try Button with Right-Facing Arrow */}
+          <button
+            type="button"
+            className="nav-try-pill"
+            onClick={onTrySample}
+            aria-label="Try LeaseClarity Sample Lease"
+            title="Try Sample Lease Agreement"
+          >
+            <span>Try</span>
+            <ArrowRight size={13} className="try-arrow" aria-hidden="true" />
+          </button>
         </div>
-      </div>
+      </nav>
     </header>
   );
 }
+
