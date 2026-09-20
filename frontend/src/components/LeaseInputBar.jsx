@@ -314,4 +314,4 @@ export function LeaseInputBar({
     </div>
   );
 }
-export default ClaudeInputBar;
+export default LeaseInputBar;
